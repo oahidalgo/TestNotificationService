@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Configuration; // Importar para leer App.config
+using System.Configuration; // Para leer el archivo App.config
 using System.Net;
 using System.Net.Mail;
 
@@ -18,29 +18,63 @@ namespace EmailNotificationApp
         {
             try
             {
-                // Leer las credenciales del archivo App.config
-                string email = ConfigurationManager.AppSettings["SmtpEmail"];
-                string password = ConfigurationManager.AppSettings["SmtpPassword"];
+                // Leer las credenciales y configuraciones desde el archivo App.config
+                string smtpEmail = ConfigurationManager.AppSettings["SmtpEmail"];
+                string smtpPassword = ConfigurationManager.AppSettings["SmtpPassword"];
+                string smtpHost = ConfigurationManager.AppSettings["SmtpHost"];
+                int smtpPort = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
+                bool enableSsl = bool.Parse(ConfigurationManager.AppSettings["EnableSsl"]);
 
-                // Configuración del cliente SMTP para Gmail
-                SmtpClient smtpClient = new SmtpClient("smtp.gmail.com")
+                string fromEmail = ConfigurationManager.AppSettings["FromEmail"];
+                string fromName = ConfigurationManager.AppSettings["FromName"];
+                string toEmail = ConfigurationManager.AppSettings["ToEmail"];
+                string subject = ConfigurationManager.AppSettings["Subject"];
+
+                // Crear tabla HTML con los datos proporcionados
+                string htmlBody = @"
+                    <html>
+                    <body>
+                        <h2>EDI File Information</h2>
+                        <table border='1' cellpadding='10'>
+                            <tr>
+                                <th>EDI file name received</th>
+                                <th>Received Date</th>
+                                <th>PDF/XML pair count</th>
+                                <th>PDF File Creation Time</th>
+                                <th>ZIP count</th>
+                                <th>ZIP creation Time</th>
+                            </tr>
+                            <tr>
+                                <td>edi_file_123.edi</td>
+                                <td>2023-09-01 12:30:00</td>
+                                <td>10</td>
+                                <td>2023-09-01 12:35:00</td>
+                                <td>5</td>
+                                <td>2023-09-01 12:40:00</td>
+                            </tr>
+                        </table>
+                    </body>
+                    </html>";
+
+                // Configuración del cliente SMTP
+                SmtpClient smtpClient = new SmtpClient(smtpHost)
                 {
-                    Port = 587, // Puerto para TLS
-                    Credentials = new NetworkCredential(email, password),
-                    EnableSsl = true, // Gmail requiere SSL
+                    Port = smtpPort,
+                    Credentials = new NetworkCredential(smtpEmail, smtpPassword),
+                    EnableSsl = enableSsl
                 };
 
                 // Configurar el mensaje de correo electrónico
                 MailMessage mailMessage = new MailMessage
                 {
-                    From = new MailAddress(email, "Tu Nombre"),
-                    Subject = "Prueba de Notificación",
-                    Body = "Este es un correo de prueba enviado desde una aplicación de consola en C#.",
-                    IsBodyHtml = false
+                    From = new MailAddress(fromEmail, fromName),
+                    Subject = subject,
+                    Body = htmlBody,
+                    IsBodyHtml = true // Importante: Especificar que el cuerpo es HTML
                 };
 
                 // Añadir destinatario
-                mailMessage.To.Add("destinatario@gmail.com");
+                mailMessage.To.Add(toEmail);
 
                 // Enviar el correo electrónico
                 smtpClient.Send(mailMessage);
