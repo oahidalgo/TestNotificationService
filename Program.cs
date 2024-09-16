@@ -1,27 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.ServiceProcess;
-using System.Text;
-using System.Net.Mail;
+using System.Configuration; // Importar para leer App.config
 using System.Net;
+using System.Net.Mail;
 
-namespace TestNotificationService
+namespace EmailNotificationApp
 {
-    internal static class Program
+    class Program
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
-        static void Main()
+        static void Main(string[] args)
         {
-            //ServiceBase[] ServicesToRun;
-            //ServicesToRun = new ServiceBase[]
-            //{
-            //    new Service1()
-            //};
-            //ServiceBase.Run(ServicesToRun);
-            SendEmailNotification();            
+            // Llamamos al método que envía el correo
+            SendEmailNotification();
         }
 
         // Método para enviar notificaciones por correo electrónico
@@ -29,25 +18,29 @@ namespace TestNotificationService
         {
             try
             {
+                // Leer las credenciales del archivo App.config
+                string email = ConfigurationManager.AppSettings["SmtpEmail"];
+                string password = ConfigurationManager.AppSettings["SmtpPassword"];
+
                 // Configuración del cliente SMTP para Gmail
                 SmtpClient smtpClient = new SmtpClient("smtp.gmail.com")
                 {
                     Port = 587, // Puerto para TLS
-                    Credentials = new NetworkCredential("tu_correo@gmail.com", "tu_contraseña_o_contraseña_de_aplicacion"),
+                    Credentials = new NetworkCredential(email, password),
                     EnableSsl = true, // Gmail requiere SSL
                 };
 
                 // Configurar el mensaje de correo electrónico
                 MailMessage mailMessage = new MailMessage
                 {
-                    From = new MailAddress("tu_correo@gmail.com", "Nombre Remitente"),
+                    From = new MailAddress(email, "Tu Nombre"),
                     Subject = "Prueba de Notificación",
                     Body = "Este es un correo de prueba enviado desde una aplicación de consola en C#.",
-                    IsBodyHtml = false // Cambia a true si deseas enviar HTML
+                    IsBodyHtml = false
                 };
 
                 // Añadir destinatario
-                mailMessage.To.Add("ohgovilla@gmail.com"); // Puedes enviar a múltiples destinatarios si lo deseas
+                mailMessage.To.Add("destinatario@gmail.com");
 
                 // Enviar el correo electrónico
                 smtpClient.Send(mailMessage);
